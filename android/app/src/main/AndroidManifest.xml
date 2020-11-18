@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.pb_test">
    <application
-        android:label="pb_test"
+        android:label="ePB Testing"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
