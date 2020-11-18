@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "A new Flutter project." "\0"
+            VALUE "CompanyName", "com.enovates" "\0"
+            VALUE "FileDescription", "A tool for configuring eNovates products." "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "powerboard_testing" "\0"
+            VALUE "InternalName", "ePB Testing" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2020 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "powerboard_testing.exe" "\0"
-            VALUE "ProductName", "powerboard_testing" "\0"
+            VALUE "OriginalFilename", "ePB Testing.exe" "\0"
+            VALUE "ProductName", "ePB Testing" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

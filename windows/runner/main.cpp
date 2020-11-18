@@ -30,7 +30,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(&run_loop, project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-  if (!window.CreateAndShow(L"powerboard_testing", origin, size)) {
+  if (!window.CreateAndShow(L"ePB Testing", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);
