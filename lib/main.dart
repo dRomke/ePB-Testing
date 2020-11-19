@@ -3,29 +3,19 @@ import 'package:flutter_serial_port/flutter_serial_port.dart';
 //import 'package:dart_serial_port/dart_serial_port.dart';
 import 'dart:typed_data';
 
+var rxPatterns = [
+  r'Voltage for Channel 0',
+  r'Current for Channel 0',
+  r'W\_ACTIVE for Channel 0'
+]; // follows with  // '1 :  0x00000000'
+
+var txCommands = [
+  "met metro 6 1 1 2 1\n",
+  "met metro 6 1 1 1 1\n",
+  "met metro 2 1 1 1\n"
+];
+
 void main() {
-  final name = SerialPort.availablePorts.first;
-  print('name ' + name);
-  final port = SerialPort(name);
-  //port.config.baudRate = 9600;
-  if (!port.openReadWrite()) {
-    print('open error ' + SerialPort.lastError.toString());
-  }
-
-  // for (int i = 0; i < 4; i++) {
-  String metro = "met metro 6 1 1 2 1\n";
-  print(Uint8List.fromList(metro.codeUnits));
-  port.write(new Uint8List.fromList(metro.codeUnits));
-  // }
-  // (null.parse('0123', radix: 16) / 1000.0).toString();
-  final reader = SerialPortReader(port);
-  reader.stream.listen((data) {
-    String result = String.fromCharCodes(data); //.sublist(43));
-    print('received: $result');
-    String metro = "met metro 6 1 1 2 1\n";
-    port.write(new Uint8List.fromList(metro.codeUnits));
-  });
-
   runApp(PowerBoardTest());
 }
 
@@ -42,7 +32,48 @@ class _MyHomePageState extends State<PowerBoardTest> {
   var _availablePorts = [];
   int _chosenPortId = 0;
   SerialPort _chosenPort;
-  int _counter = 0;
+  SerialPortReader _reader;
+
+  void _newSerial(int newId) {
+    setState(() {
+      _chosenPortId = newId;
+      _chosenPort = SerialPort(_availablePorts[newId]);
+    });
+
+    if (!_chosenPort.openReadWrite()) {
+      print('Error opening ' +
+          _chosenPort.toString() +
+          "\n" +
+          SerialPort.lastError.toString());
+    } else {
+      _reader = SerialPortReader(_chosenPort);
+      _reader.stream.listen((data) {
+        String dataStr = String.fromCharCodes(data);
+        print('received: $dataStr');
+
+        rxPatterns.asMap().forEach((i, pattern) {
+          RegExp re = new RegExp(pattern);
+          if (re.hasMatch(dataStr)) {
+            Match reMatch = re.firstMatch(dataStr);
+            String valueStr =
+                dataStr.substring(reMatch.end + 7, reMatch.end + 15);
+            double value = int.parse(valueStr, radix: 16) / 1000.1;
+            print(
+                'Decoded $i,${dataStr.substring(reMatch.end, reMatch.end + 1)}: $value');
+          }
+        });
+      });
+    }
+  }
+
+  void _scan() {
+    txCommands.asMap().forEach((i, command) {
+      Future.delayed(Duration(milliseconds: 500 * i), () {
+        _chosenPort.write(new Uint8List.fromList(command.codeUnits));
+        print('Sent $command');
+      });
+    });
+  }
 
   @override
   void initState() {
@@ -72,37 +103,24 @@ class _MyHomePageState extends State<PowerBoardTest> {
             margin: const EdgeInsets.all(20.0),
             child: TabBarView(
               children: [
-                DropdownButton(
-                    value: _chosenPortId,
-                    disabledHint: Text("No serial ports available."),
-                    onChanged: (value) {
-                      setState(() {
-                        _chosenPortId = value;
-                        _chosenPort = SerialPort(_availablePorts[value]);
-
-                        SerialPort(SerialPort.availablePorts.first)
-                            .openReadWrite();
-                        print(SerialPort.lastError);
-
-                        print(_chosenPort);
-                        print(_chosenPort.openReadWrite());
-                        print(SerialPort.lastError);
-
-                        final reader = SerialPortReader(_chosenPort);
-                        reader.stream.listen((data) {
-                          print('received: $data');
-                        });
-                      });
-                      String poortje = _availablePorts[value];
-                      print('$poortje chosen ($value)');
-                    },
-                    items: //[
-                        List.generate(_availablePorts.length, (i) {
-                      return DropdownMenuItem(
-                          value: i,
-                          child:
-                              Text(SerialPort(_availablePorts[i]).description));
-                    })),
+                Column(children: [
+                  DropdownButton(
+                      value: _chosenPortId,
+                      disabledHint: Text("No serial ports available."),
+                      onChanged: (value) {
+                        _newSerial(value);
+                      },
+                      items: List.generate(_availablePorts.length, (i) {
+                        return DropdownMenuItem(
+                            value: i,
+                            child: Text(
+                                SerialPort(_availablePorts[i]).description));
+                      })),
+                  RaisedButton(
+                    onPressed: _scan,
+                    child: Icon(Icons.refresh),
+                  )
+                ]),
                 Text("Test")
               ],
             ),
