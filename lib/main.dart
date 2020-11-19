@@ -113,13 +113,38 @@ class _MyHomePageState extends State<PowerBoardTest> {
                       items: List.generate(_availablePorts.length, (i) {
                         return DropdownMenuItem(
                             value: i,
-                            child: Text(
-                                SerialPort(_availablePorts[i]).description));
+                            child: SerialPortMenuItem(
+                                SerialPort(_availablePorts[i]).description,
+                                _availablePorts[i].toString()));
                       })),
-                  RaisedButton(
-                    onPressed: _scan,
-                    child: Icon(Icons.refresh),
-                  )
+                  Expanded(
+                      child: SizedBox(
+                          height: 200.0,
+                          child: GridView.count(
+                              crossAxisCount: 4,
+                              childAspectRatio: 4,
+                              crossAxisSpacing: 20.0,
+                              mainAxisSpacing: 10.0,
+                              children: [
+                                SelectableFieldWithUnit('Voltage', 234, 'V'),
+                                SelectableFieldWithUnit('Voltage', 234, 'V'),
+                                SelectableFieldWithUnit('Voltage', 234, 'V'),
+                                ElevatedButton(
+                                    onPressed: _scan,
+                                    child: Icon(Icons.refresh)),
+                                SelectableFieldWithUnit('Current', 12.3, 'A'),
+                                SelectableFieldWithUnit('Current', 12.3, 'A'),
+                                SelectableFieldWithUnit('Current', 12.3, 'A'),
+                                ElevatedButton(
+                                    onPressed: _scan,
+                                    child: Icon(Icons.refresh)),
+                                SelectableFieldWithUnit('Energy', 123.4, 'Wh'),
+                                SelectableFieldWithUnit('Energy', 123.4, 'Wh'),
+                                SelectableFieldWithUnit('Energy', 123.4, 'Wh'),
+                                ElevatedButton(
+                                    onPressed: _scan,
+                                    child: Icon(Icons.refresh))
+                              ])))
                 ]),
                 Text("Test")
               ],
@@ -127,6 +152,54 @@ class _MyHomePageState extends State<PowerBoardTest> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class SerialPortMenuItem extends StatelessWidget {
+  final String description;
+  final String address;
+
+  SerialPortMenuItem(this.description, this.address);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+        width: 400.0,
+        child: Row(children: [
+          Text(description),
+          Spacer(),
+          Text(
+            address,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+                fontStyle: FontStyle.italic, color: Colors.grey, fontSize: 12),
+          )
+        ]));
+  }
+}
+
+class SelectableFieldWithUnit extends StatelessWidget {
+  final String description;
+  final double initialValue;
+  final String unit;
+
+  SelectableFieldWithUnit(this.description, this.initialValue, this.unit);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      readOnly: true,
+      initialValue: initialValue.toString(),
+      textAlign: TextAlign.right,
+      decoration: InputDecoration(
+          labelText: description,
+          suffix: SizedBox(
+              width: 30,
+              child: Text(
+                unit,
+                textAlign: TextAlign.center,
+              ))),
     );
   }
 }
