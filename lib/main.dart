@@ -2,11 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_serial_port/flutter_serial_port.dart';
 
 void main() {
-  runApp(MyHomePage());
+  final name = SerialPort.availablePorts.first;
+  print(name);
+  final port = SerialPort(name);
+  if (!port.openReadWrite()) {
+    print(SerialPort.lastError);
+  }
+
+  final reader = SerialPortReader(port);
+  reader.stream.listen((data) {
+    print('received: $data');
+  });
+
+  runApp(PowerBoardTest());
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class PowerBoardTest extends StatefulWidget {
+  PowerBoardTest({Key key, this.title}) : super(key: key);
 
   final String title;
 
@@ -14,59 +26,77 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  var availablePorts = [];
+class _MyHomePageState extends State<PowerBoardTest> {
+  var _availablePorts = [];
+  int _chosenPortId = 0;
+  SerialPort _chosenPort;
   int _counter = 0;
 
   @override
   void initState() {
     super.initState();
-    setState(() => availablePorts = SerialPort.availablePorts);
-  }
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+    setState(() => _availablePorts = SerialPort.availablePorts);
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: Scaffold(
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+      ),
+      home: DefaultTabController(
+        length: 2,
+        child: Scaffold(
           appBar: AppBar(
-            title: Text("Titeltje"),
+            bottom: TabBar(
+              tabs: [
+                Tab(icon: Icon(Icons.flash_on)),
+                Tab(icon: Icon(Icons.tune)),
+              ],
+            ),
+            title: Text('Power Board Testing'),
           ),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  'You have pushed the button this many times:',
-                ),
-                Text(
-                  '$_counter',
-                  style: Theme.of(context).textTheme.headline4,
-                ),
-                Column(children: [
-                  for (final address in availablePorts)
-                    Builder(builder: (context) {
-                      final port = SerialPort(address);
-                      return Text(port.description);
-                    })
-                ])
+          body: Container(
+            margin: const EdgeInsets.all(20.0),
+            child: TabBarView(
+              children: [
+                DropdownButton(
+                    value: _chosenPortId,
+                    disabledHint: Text("No serial ports available."),
+                    onChanged: (value) {
+                      setState(() {
+                        _chosenPortId = value;
+                        _chosenPort = SerialPort(_availablePorts[value]);
+
+                        SerialPort(SerialPort.availablePorts.first)
+                            .openReadWrite();
+                        print(SerialPort.lastError);
+
+                        print(_chosenPort);
+                        print(_chosenPort.openReadWrite());
+                        print(SerialPort.lastError);
+
+                        final reader = SerialPortReader(_chosenPort);
+                        reader.stream.listen((data) {
+                          print('received: $data');
+                        });
+                      });
+                      String poortje = _availablePorts[value];
+                      print('$poortje chosen ($value)');
+                    },
+                    items: //[
+                        List.generate(_availablePorts.length, (i) {
+                      return DropdownMenuItem(
+                          value: i,
+                          child:
+                              Text(SerialPort(_availablePorts[i]).description));
+                    })),
+                Text("Test")
               ],
             ),
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: _incrementCounter,
-            tooltip: 'Increment',
-            child: Icon(Icons.add),
-          ),
-        ));
+        ),
+      ),
+    );
   }
 }
