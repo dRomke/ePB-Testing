@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_serial_port/flutter_serial_port.dart';
+//import 'package:dart_serial_port/dart_serial_port.dart';
+import 'dart:typed_data';
 
 void main() {
   final name = SerialPort.availablePorts.first;
-  print(name);
+  print('name ' + name);
   final port = SerialPort(name);
+  port.config.baudRate = 9600;
   if (!port.openReadWrite()) {
-    print(SerialPort.lastError);
+    print('open error ' + SerialPort.lastError.toString());
   }
+
+  port.write(Uint8List.fromList([48, 49, 50]));
 
   final reader = SerialPortReader(port);
   reader.stream.listen((data) {
