@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_serial_port/flutter_serial_port.dart';
 
 void main() {
   runApp(MyHomePage());
@@ -14,7 +15,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  var availablePorts = [];
   int _counter = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() => availablePorts = SerialPort.availablePorts);
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -44,6 +52,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   '$_counter',
                   style: Theme.of(context).textTheme.headline4,
                 ),
+                Column(children: [
+                  for (final address in availablePorts)
+                    Builder(builder: (context) {
+                      final port = SerialPort(address);
+                      return Text(port.description);
+                    })
+                ])
               ],
             ),
           ),

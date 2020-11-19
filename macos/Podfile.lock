@@ -1,0 +1,29 @@
+PODS:
+  - flutter_serial_port (0.0.1):
+    - FlutterMacOS
+    - libserialport
+  - FlutterMacOS (1.0.0)
+  - libserialport (0.1.1)
+
+DEPENDENCIES:
+  - flutter_serial_port (from `Flutter/ephemeral/.symlinks/plugins/flutter_serial_port/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64`)
+
+SPEC REPOS:
+  trunk:
+    - libserialport
+
+EXTERNAL SOURCES:
+  flutter_serial_port:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_serial_port/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64
+
+SPEC CHECKSUMS:
+  flutter_serial_port: 4f083abe2fbb87502f2babc970ccf7ab0e5df90c
+  FlutterMacOS: 15bea8a44d2fa024068daa0140371c020b4b6ff9
+  libserialport: 1cb25e66ef3c92a8e59c2ea3820302c3fa2268cd
+
+PODFILE CHECKSUM: d8ba9b3e9e93c62c74a660b46c6fcb09f03991a7
+
+COCOAPODS: 1.10.0
