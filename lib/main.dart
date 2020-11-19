@@ -7,16 +7,23 @@ void main() {
   final name = SerialPort.availablePorts.first;
   print('name ' + name);
   final port = SerialPort(name);
-  port.config.baudRate = 9600;
+  //port.config.baudRate = 9600;
   if (!port.openReadWrite()) {
     print('open error ' + SerialPort.lastError.toString());
   }
 
-  port.write(Uint8List.fromList([48, 49, 50]));
-
+  // for (int i = 0; i < 4; i++) {
+  String metro = "met metro 6 1 1 2 1\n";
+  print(Uint8List.fromList(metro.codeUnits));
+  port.write(new Uint8List.fromList(metro.codeUnits));
+  // }
+  // (null.parse('0123', radix: 16) / 1000.0).toString();
   final reader = SerialPortReader(port);
   reader.stream.listen((data) {
-    print('received: $data');
+    String result = String.fromCharCodes(data); //.sublist(43));
+    print('received: $result');
+    String metro = "met metro 6 1 1 2 1\n";
+    port.write(new Uint8List.fromList(metro.codeUnits));
   });
 
   runApp(PowerBoardTest());
