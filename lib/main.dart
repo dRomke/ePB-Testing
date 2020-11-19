@@ -10,9 +10,9 @@ var rxPatterns = [
 ]; // follows with  // '1 :  0x00000000'
 
 var txCommands = [
-  "met metro 6 1 1 2 1\n",
-  "met metro 6 1 1 1 1\n",
-  "met metro 2 1 1 1\n"
+  "met metro 6 1 # 2 1\n",
+  "met metro 6 1 # 1 1\n",
+  "met metro 2 1 # 1\n" // # is channel
 ];
 
 void main() {
@@ -33,6 +33,9 @@ class _MyHomePageState extends State<PowerBoardTest> {
   int _chosenPortId = 0;
   SerialPort _chosenPort;
   SerialPortReader _reader;
+  final _voltage = [0.0, 0.0, 0.0];
+  var _current = [0.0, 0.0, 0.0];
+  final _energy = [0.0, 0.0, 0.0];
 
   void _newSerial(int newId) {
     setState(() {
@@ -57,22 +60,26 @@ class _MyHomePageState extends State<PowerBoardTest> {
             Match reMatch = re.firstMatch(dataStr);
             String valueStr =
                 dataStr.substring(reMatch.end + 7, reMatch.end + 15);
-            double value = int.parse(valueStr, radix: 16) / 1000.1;
-            print(
-                'Decoded $i,${dataStr.substring(reMatch.end, reMatch.end + 1)}: $value');
+            double value = int.parse(valueStr, radix: 16) / 1000.0;
+            int line = int.parse(dataStr[reMatch.end]);
+            setState(() => _voltage[line % 3] = value);
+            print('Decoded $i,$line: $value');
           }
         });
       });
     }
   }
 
-  void _scan() {
-    txCommands.asMap().forEach((i, command) {
+  void _scan(int channel) {
+    for (int i = 0; i < 3; i++) {
       Future.delayed(Duration(milliseconds: 500 * i), () {
-        _chosenPort.write(new Uint8List.fromList(command.codeUnits));
-        print('Sent $command');
+        // Call 3x metro command to get all 3 Lines
+        String fullCommand =
+            txCommands[channel].replaceFirst('#', (i + 1).toString());
+        _chosenPort.write(new Uint8List.fromList(fullCommand.codeUnits));
+        print('Sent $fullCommand');
       });
-    });
+    }
   }
 
   @override
@@ -107,6 +114,10 @@ class _MyHomePageState extends State<PowerBoardTest> {
                   DropdownButton(
                       value: _chosenPortId,
                       disabledHint: Text("No serial ports available."),
+                      onTap: () {
+                        setState(
+                            () => _availablePorts = SerialPort.availablePorts);
+                      },
                       onChanged: (value) {
                         _newSerial(value);
                       },
@@ -126,23 +137,38 @@ class _MyHomePageState extends State<PowerBoardTest> {
                               crossAxisSpacing: 20.0,
                               mainAxisSpacing: 10.0,
                               children: [
-                                SelectableFieldWithUnit('Voltage', 234, 'V'),
-                                SelectableFieldWithUnit('Voltage', 234, 'V'),
-                                SelectableFieldWithUnit('Voltage', 234, 'V'),
+                                SelectableFieldWithUnit(
+                                    'Voltage L1', _voltage[0], 'V'),
+                                SelectableFieldWithUnit(
+                                    'Voltage L2', _voltage[1], 'V'),
+                                SelectableFieldWithUnit(
+                                    'Voltage L3', _voltage[2], 'V'),
                                 ElevatedButton(
-                                    onPressed: _scan,
+                                    onPressed: () {
+                                      _scan(0);
+                                    },
                                     child: Icon(Icons.refresh)),
-                                SelectableFieldWithUnit('Current', 12.3, 'A'),
-                                SelectableFieldWithUnit('Current', 12.3, 'A'),
-                                SelectableFieldWithUnit('Current', 12.3, 'A'),
+                                SelectableFieldWithUnit(
+                                    'Current L1', _current[0], 'A'),
+                                SelectableFieldWithUnit(
+                                    'Current L2', _current[1], 'A'),
+                                SelectableFieldWithUnit(
+                                    'Current L3', _current[2], 'A'),
                                 ElevatedButton(
-                                    onPressed: _scan,
+                                    onPressed: () {
+                                      _scan(1);
+                                    },
                                     child: Icon(Icons.refresh)),
-                                SelectableFieldWithUnit('Energy', 123.4, 'Wh'),
-                                SelectableFieldWithUnit('Energy', 123.4, 'Wh'),
-                                SelectableFieldWithUnit('Energy', 123.4, 'Wh'),
+                                SelectableFieldWithUnit(
+                                    'Energy L1', _energy[0], 'Wh'),
+                                SelectableFieldWithUnit(
+                                    'Energy L2', _energy[1], 'Wh'),
+                                SelectableFieldWithUnit(
+                                    'Energy L3', _energy[2], 'Wh'),
                                 ElevatedButton(
-                                    onPressed: _scan,
+                                    onPressed: () {
+                                      _scan(2);
+                                    },
                                     child: Icon(Icons.refresh))
                               ])))
                 ]),
