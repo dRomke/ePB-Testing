@@ -50,6 +50,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  dart_serial_port:
+    dependency: transitive
+    description:
+      name: dart_serial_port
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.4+1"
   fake_async:
     dependency: transitive
     description:
@@ -57,11 +64,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0-nullsafety.3"
+  ffi:
+    dependency: transitive
+    description:
+      name: ffi
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.3"
   flutter:
     dependency: "direct main"
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_serial_port:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: d69c41a54dbedd2e500856ec95957f627e452a49
+      url: "https://github.com/jpnurmi/flutter_serial_port"
+    source: git
+    version: "0.0.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -151,3 +174,4 @@ packages:
     version: "2.1.0-nullsafety.5"
 sdks:
   dart: ">=2.12.0-0.0 <3.0.0"
+  flutter: ">=1.20.0 <2.0.0"
