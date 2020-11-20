@@ -33,9 +33,13 @@ class _MyHomePageState extends State<PowerBoardTest> {
   int _chosenPortId = 0;
   SerialPort _chosenPort;
   SerialPortReader _reader;
-  final _voltage = [0.0, 0.0, 0.0];
-  var _current = [0.0, 0.0, 0.0];
-  final _energy = [0.0, 0.0, 0.0];
+
+  List<TextEditingController> _volt =
+      List.generate(3, (i) => TextEditingController());
+  List<TextEditingController> _curr =
+      List.generate(3, (i) => TextEditingController());
+  List<TextEditingController> _ener =
+      List.generate(3, (i) => TextEditingController());
 
   void _newSerial(int newId) {
     setState(() {
@@ -49,6 +53,7 @@ class _MyHomePageState extends State<PowerBoardTest> {
           "\n" +
           SerialPort.lastError.toString());
     } else {
+      if (_reader != null) _reader.close();
       _reader = SerialPortReader(_chosenPort);
       _reader.stream.listen((data) {
         String dataStr = String.fromCharCodes(data);
@@ -62,7 +67,20 @@ class _MyHomePageState extends State<PowerBoardTest> {
                 dataStr.substring(reMatch.end + 7, reMatch.end + 15);
             double value = int.parse(valueStr, radix: 16) / 1000.0;
             int line = int.parse(dataStr[reMatch.end]);
-            setState(() => _voltage[line % 3] = value);
+
+            switch (i) {
+              case 0:
+                setState(() => _volt[line % 3].text = value.toString());
+                break;
+              case 1:
+                setState(() => _curr[line % 3].text = value.toString());
+                break;
+              case 2:
+                setState(() => _ener[line % 3].text = value.toString());
+                break;
+
+              default:
+            }
             print('Decoded $i,$line: $value');
           }
         });
@@ -72,13 +90,29 @@ class _MyHomePageState extends State<PowerBoardTest> {
 
   void _scan(int channel) {
     for (int i = 0; i < 3; i++) {
-      Future.delayed(Duration(milliseconds: 500 * i), () {
-        // Call 3x metro command to get all 3 Lines
-        String fullCommand =
-            txCommands[channel].replaceFirst('#', (i + 1).toString());
-        _chosenPort.write(new Uint8List.fromList(fullCommand.codeUnits));
-        print('Sent $fullCommand');
-      });
+      if (_reader != null) {
+        Future.delayed(Duration(milliseconds: 500 * i), () {
+          // Call 3x metro command to get all 3 Lines
+          String fullCommand =
+              txCommands[channel].replaceFirst('#', (i + 1).toString());
+          _chosenPort.write(new Uint8List.fromList(fullCommand.codeUnits));
+          print('Sent $fullCommand');
+        });
+      }
+
+      switch (channel) {
+        case 0:
+          setState(() => _volt[i].text = 'reading...');
+          break;
+        case 1:
+          setState(() => _curr[i].text = 'reading...');
+          break;
+        case 2:
+          setState(() => _ener[i].text = 'reading...');
+          break;
+
+        default:
+      }
     }
   }
 
@@ -107,6 +141,7 @@ class _MyHomePageState extends State<PowerBoardTest> {
             title: Text('Power Board Testing'),
           ),
           body: Container(
+            constraints: BoxConstraints(minWidth: 400),
             margin: const EdgeInsets.all(20.0),
             child: TabBarView(
               children: [
@@ -137,38 +172,23 @@ class _MyHomePageState extends State<PowerBoardTest> {
                               crossAxisSpacing: 20.0,
                               mainAxisSpacing: 10.0,
                               children: [
-                                SelectableFieldWithUnit(
-                                    'Voltage L1', _voltage[0], 'V'),
-                                SelectableFieldWithUnit(
-                                    'Voltage L2', _voltage[1], 'V'),
-                                SelectableFieldWithUnit(
-                                    'Voltage L3', _voltage[2], 'V'),
+                                SelectableField('Voltage L1', _volt[0], 'V'),
+                                SelectableField('Voltage L2', _volt[1], 'V'),
+                                SelectableField('Voltage L3', _volt[2], 'V'),
                                 ElevatedButton(
-                                    onPressed: () {
-                                      _scan(0);
-                                    },
+                                    onPressed: () => _scan(0),
                                     child: Icon(Icons.refresh)),
-                                SelectableFieldWithUnit(
-                                    'Current L1', _current[0], 'A'),
-                                SelectableFieldWithUnit(
-                                    'Current L2', _current[1], 'A'),
-                                SelectableFieldWithUnit(
-                                    'Current L3', _current[2], 'A'),
+                                SelectableField('Current L1', _curr[0], 'A'),
+                                SelectableField('Current L2', _curr[1], 'A'),
+                                SelectableField('Current L3', _curr[2], 'A'),
                                 ElevatedButton(
-                                    onPressed: () {
-                                      _scan(1);
-                                    },
+                                    onPressed: () => _scan(1),
                                     child: Icon(Icons.refresh)),
-                                SelectableFieldWithUnit(
-                                    'Energy L1', _energy[0], 'Wh'),
-                                SelectableFieldWithUnit(
-                                    'Energy L2', _energy[1], 'Wh'),
-                                SelectableFieldWithUnit(
-                                    'Energy L3', _energy[2], 'Wh'),
+                                SelectableField('Energy L1', _ener[0], 'Wh'),
+                                SelectableField('Energy L2', _ener[1], 'Wh'),
+                                SelectableField('Energy L3', _ener[2], 'Wh'),
                                 ElevatedButton(
-                                    onPressed: () {
-                                      _scan(2);
-                                    },
+                                    onPressed: () => _scan(2),
                                     child: Icon(Icons.refresh))
                               ])))
                 ]),
@@ -178,6 +198,26 @@ class _MyHomePageState extends State<PowerBoardTest> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget selectableField(
+      String description, TextEditingController controller, String unit) {
+    // TextEditingController controller;
+
+    return TextFormField(
+      controller: controller,
+      readOnly: false,
+      initialValue: '123',
+      textAlign: TextAlign.right,
+      decoration: InputDecoration(
+          labelText: description,
+          suffix: SizedBox(
+              width: 30,
+              child: Text(
+                unit,
+                textAlign: TextAlign.center,
+              ))),
     );
   }
 }
@@ -205,18 +245,18 @@ class SerialPortMenuItem extends StatelessWidget {
   }
 }
 
-class SelectableFieldWithUnit extends StatelessWidget {
+class SelectableField extends StatelessWidget {
   final String description;
-  final double initialValue;
+  final TextEditingController initialValue;
   final String unit;
 
-  SelectableFieldWithUnit(this.description, this.initialValue, this.unit);
+  SelectableField(this.description, this.initialValue, this.unit);
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       readOnly: true,
-      initialValue: initialValue.toString(),
+      controller: initialValue,
       textAlign: TextAlign.right,
       decoration: InputDecoration(
           labelText: description,
