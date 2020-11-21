@@ -102,13 +102,13 @@ class _MyHomePageState extends State<PowerBoardTest> {
 
       switch (channel) {
         case 0:
-          setState(() => _volt[i].text = 'reading...');
+          setState(() => _volt[i].text = '...');
           break;
         case 1:
-          setState(() => _curr[i].text = 'reading...');
+          setState(() => _curr[i].text = '...');
           break;
         case 2:
-          setState(() => _ener[i].text = 'reading...');
+          setState(() => _ener[i].text = '...');
           break;
 
         default:
@@ -141,7 +141,6 @@ class _MyHomePageState extends State<PowerBoardTest> {
             title: Text('Power Board Testing'),
           ),
           body: Container(
-            constraints: BoxConstraints(minWidth: 400),
             margin: const EdgeInsets.all(20.0),
             child: TabBarView(
               children: [
@@ -189,7 +188,23 @@ class _MyHomePageState extends State<PowerBoardTest> {
                                 SelectableField('Energy L3', _ener[2], 'Wh'),
                                 ElevatedButton(
                                     onPressed: () => _scan(2),
-                                    child: Icon(Icons.refresh))
+                                    child: Icon(Icons.refresh)),
+                                DropdownButton(
+                                  onChanged: (value) {
+                                    _newSerial(value);
+                                  },
+                                  items: [],
+                                ),
+                                Text(''),
+                                Text(''),
+                                Text(''),
+                                TextField(
+                                    decoration: InputDecoration(
+                                        labelText: 'description')),
+                                TextFormField(
+                                    // controller: initialValue,
+                                    ),
+                                SelectableField('Calib L3', _ener[2], ''),
                               ])))
                 ]),
                 Text("Test")
@@ -201,25 +216,24 @@ class _MyHomePageState extends State<PowerBoardTest> {
     );
   }
 
-  Widget selectableField(
-      String description, TextEditingController controller, String unit) {
-    // TextEditingController controller;
-
-    return TextFormField(
-      controller: controller,
-      readOnly: false,
-      initialValue: '123',
-      textAlign: TextAlign.right,
-      decoration: InputDecoration(
-          labelText: description,
-          suffix: SizedBox(
-              width: 30,
-              child: Text(
-                unit,
-                textAlign: TextAlign.center,
-              ))),
-    );
-  }
+  // Widget selectableField(
+  //     String description, TextEditingController controller, String unit) {
+  //   // TextEditingController controller;
+  //   return TextField(
+  //     controller: controller,
+  //     readOnly: false,
+  //     // initialValue: '123',
+  //     textAlign: TextAlign.right,
+  //     decoration: InputDecoration(
+  //         labelText: description,
+  //         suffix: SizedBox(
+  //             width: 30,
+  //             child: Text(
+  //               unit,
+  //               textAlign: TextAlign.center,
+  //             ))),
+  //   );
+  // }
 }
 
 class SerialPortMenuItem extends StatelessWidget {
@@ -254,7 +268,7 @@ class SelectableField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    return TextField(
       readOnly: true,
       controller: initialValue,
       textAlign: TextAlign.right,
